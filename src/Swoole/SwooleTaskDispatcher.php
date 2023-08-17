@@ -28,6 +28,10 @@ class SwooleTaskDispatcher implements DispatchesTasks
         }
 
         $results = app(Server::class)->taskWaitMulti(collect($tasks)->mapWithKeys(function ($task, $key) {
+            if (! is_callable($task)) {
+                throw new InvalidArgumentException("Task #{$key} is not a valid callable.");
+            }
+
             return [$key => $task instanceof Closure
                             ? new SerializableClosure($task)
                             : $task, ];
@@ -67,7 +71,11 @@ class SwooleTaskDispatcher implements DispatchesTasks
 
         $server = app(Server::class);
 
-        collect($tasks)->each(function ($task) use ($server) {
+        collect($tasks)->each(function ($task, $key) {
+            if (! is_callable($task)) {
+                throw new InvalidArgumentException("Task #{$key} is not a valid callable.");
+            }
+        })->each(function ($task) use ($server) {
             $server->task($task instanceof Closure ? new SerializableClosure($task) : $task);
         });
     }
