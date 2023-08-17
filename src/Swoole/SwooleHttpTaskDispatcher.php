@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use InvalidArgumentException;
 use Laravel\Octane\Contracts\DispatchesTasks;
 use Laravel\Octane\Exceptions\TaskExceptionResult;
 use Laravel\Octane\Exceptions\TaskTimeoutException;
@@ -33,6 +34,10 @@ class SwooleHttpTaskDispatcher implements DispatchesTasks
     public function resolve(array $tasks, int $waitMilliseconds = 3000): array
     {
         $tasks = collect($tasks)->mapWithKeys(function ($task, $key) {
+            if (! is_callable($task)) {
+                throw new InvalidArgumentException("Task #{$key} is not a valid callable.");
+            }
+
             return [$key => $task instanceof Closure
                             ? new SerializableClosure($task)
                             : $task, ];
@@ -62,6 +67,10 @@ class SwooleHttpTaskDispatcher implements DispatchesTasks
     public function dispatch(array $tasks): void
     {
         $tasks = collect($tasks)->mapWithKeys(function ($task, $key) {
+            if (! is_callable($task)) {
+                throw new InvalidArgumentException("Task #{$key} is not a valid callable.");
+            }
+
             return [$key => $task instanceof Closure
                             ? new SerializableClosure($task)
                             : $task, ];
