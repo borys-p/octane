@@ -50,7 +50,7 @@ class SwooleHttpTaskDispatcher implements DispatchesTasks
             ]);
 
             return match ($response->status()) {
-                200 => unserialize($response),
+                200 => unserialize($response, ['allowed_classes' => true]),
                 504 => throw TaskTimeoutException::after($waitMilliseconds),
                 default => throw TaskExceptionResult::from(
                     new Exception('Invalid response from task server.'),
